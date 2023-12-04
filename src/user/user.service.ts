@@ -66,7 +66,7 @@ export class UserService {
 
     const newFriend: Friend = {
       id,
-      name: username,
+      username: username,
       messages: [],
     };
 

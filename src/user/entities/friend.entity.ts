@@ -6,7 +6,7 @@ export class Friend {
   id: number;
 
   @Column()
-  name: string;
+  username: string;
 
   @Column({ type: 'json', default: '[]' })
   messages: any[];

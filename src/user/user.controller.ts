@@ -12,6 +12,12 @@ export class UserController {
     return this.userService.create(createUserDto);
   }
 
+  @Post('add-friend')
+  async addFriend(
+    @Body() body: { currentUser: string; friendUsername: string },
+  ) {
+    return this.userService.addFriend(body.currentUser, body.friendUsername);
+  }
   @Get()
   findAll() {
     return this.userService.findAll();
