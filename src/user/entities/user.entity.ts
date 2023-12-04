@@ -1,4 +1,5 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Friend } from './friend.entity';
 
 @Entity()
 export class User {
@@ -27,5 +28,5 @@ export class User {
   mobileNumber: string;
 
   @Column({ type: 'json', default: '[]' })
-  friends: number[];
+  friends: Friend[];
 }

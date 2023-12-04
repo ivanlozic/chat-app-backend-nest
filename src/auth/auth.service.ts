@@ -13,12 +13,15 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async login(username: string, password: string): Promise<{ token: string }> {
+  async login(
+    username: string,
+    password: string,
+  ): Promise<{ token: string; user: User }> {
     const user = await this.userRepository.findOne({ where: { username } });
 
     if (user && user.password === password) {
       const token = this.generateAuthToken();
-      return { token };
+      return { token, user };
     } else {
       throw new UnauthorizedException('Invalid username or password');
     }
