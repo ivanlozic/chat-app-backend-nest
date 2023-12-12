@@ -46,6 +46,10 @@ export class UserService {
     currentUsername: string,
     friendUsername: string,
   ): Promise<Friend> {
+
+    if (currentUsername === friendUsername) {
+      throw new NotFoundException('Cannot add yourself as a friend.');
+    }
     const currentUser = await this.userRepository.findOne({
       where: { username: currentUsername },
     });
