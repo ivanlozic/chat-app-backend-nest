@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { Friend } from './entities/friend.entity';
+import { UpdateUserDto } from './dto/update-user.dto';
 // import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
@@ -46,9 +47,8 @@ export class UserService {
     currentUsername: string,
     friendUsername: string,
   ): Promise<Friend> {
-
     if (currentUsername === friendUsername) {
-      throw new NotFoundException('Cannot add yourself as a friend.');
+      throw new Error('Cannot add yourself as a friend.');
     }
     const currentUser = await this.userRepository.findOne({
       where: { username: currentUsername },
@@ -86,5 +86,20 @@ export class UserService {
     });
 
     return (await user).friends;
+  }
+
+  async updateProfile(id: number, updateUserDto: UpdateUserDto): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { id: id } });
+
+    if (!user) {
+      throw new Error(`User with id ${id} not found`);
+    }
+
+    user.firstName = updateUserDto.firstName;
+    user.lastName = updateUserDto.lastName;
+    user.mobileNumber = updateUserDto.mobileNumber;
+
+    const updatedUser = await this.userRepository.save(user);
+    return updatedUser;
   }
 }
