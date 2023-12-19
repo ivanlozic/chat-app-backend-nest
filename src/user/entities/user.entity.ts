@@ -26,6 +26,11 @@ export class User {
 
   @Column()
   mobileNumber: string;
+  @Column({ type: 'json', default: '[]' })
+  receivedFriendRequests: any[];
+
+  @Column({ type: 'json', default: '[]' })
+  sentFriendRequests: string[];
 
   @Column({ type: 'json', default: '[]' })
   friends: Friend[];

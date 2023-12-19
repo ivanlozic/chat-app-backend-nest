@@ -18,6 +18,8 @@ export class UserService {
   async create(createUserDto: CreateUserDto) {
     const user = this.userRepository.create({
       ...createUserDto,
+      receivedFriendRequests: [],
+      sentFriendRequests: [],
       friends: [],
     });
     const savedUser = await this.userRepository.save(user);
@@ -31,11 +33,6 @@ export class UserService {
   findOne(id: number) {
     return `This action returns a #${id} user`;
   }
-  /*
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
-  }
-  */
 
   remove(id: number) {
     return `This action removes a #${id} user`;
@@ -43,13 +40,10 @@ export class UserService {
 
   //FRIENDS
 
-  async addFriend(
+  async sendFriendRequest(
     currentUsername: string,
     friendUsername: string,
-  ): Promise<Friend> {
-    if (currentUsername === friendUsername) {
-      throw new Error('Cannot add yourself as a friend.');
-    }
+  ): Promise<void> {
     const currentUser = await this.userRepository.findOne({
       where: { username: currentUsername },
     });
@@ -66,18 +60,60 @@ export class UserService {
       throw new Error(`Friend with username ${friendUsername} not found`);
     }
 
-    const { id, username } = friend;
-
-    const newFriend: Friend = {
-      id,
-      username: username,
-      messages: [],
+    const userRequest = {
+      username: currentUsername,
+      name: currentUser.firstName,
+      lastName: currentUser.lastName,
     };
 
-    currentUser.friends.push(newFriend);
-    await this.userRepository.save(currentUser);
+    if (!currentUser.receivedFriendRequests.includes(friendUsername)) {
+      currentUser.sentFriendRequests.push(friendUsername);
+      friend.receivedFriendRequests.push(userRequest);
 
-    return newFriend;
+      await this.userRepository.save([currentUser, friend]);
+    }
+  }
+
+  async addFriend(
+    currentUsername: string,
+    friendUsername: string,
+  ): Promise<void> {
+    const currentUser = await this.userRepository.findOne({
+      where: { username: currentUsername },
+    });
+
+    if (!currentUser) {
+      throw new Error(`User with username ${currentUsername} not found`);
+    }
+
+    const friend = await this.userRepository.findOne({
+      where: { username: friendUsername },
+    });
+
+    if (!friend) {
+      throw new Error(`Friend with username ${friendUsername} not found`);
+    }
+
+    if (currentUser.receivedFriendRequests.includes(friendUsername)) {
+      currentUser.receivedFriendRequests =
+        currentUser.receivedFriendRequests.filter(
+          (username) => username !== friendUsername,
+        );
+
+      const newFriend: Friend = {
+        id: friend.id,
+        username: friend.username,
+        messages: [],
+      };
+
+      currentUser.friends.push(newFriend);
+
+      friend.sentFriendRequests = friend.sentFriendRequests.filter(
+        (username) => username !== currentUsername,
+      );
+
+      await this.userRepository.save([currentUser, friend]);
+    }
   }
 
   async getAllFriends(currentUser): Promise<Friend[]> {
