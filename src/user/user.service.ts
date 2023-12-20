@@ -94,10 +94,14 @@ export class UserService {
       throw new Error(`Friend with username ${friendUsername} not found`);
     }
 
-    if (currentUser.receivedFriendRequests.includes(friendUsername)) {
+    if (
+      currentUser.receivedFriendRequests.some(
+        (f) => f.username === friendUsername,
+      )
+    ) {
       currentUser.receivedFriendRequests =
         currentUser.receivedFriendRequests.filter(
-          (username) => username !== friendUsername,
+          (f) => f.username !== friendUsername,
         );
 
       const newFriend: Friend = {
@@ -106,16 +110,72 @@ export class UserService {
         messages: [],
       };
 
+      const currentUserAsFriend = {
+        id: currentUser.id,
+        username: currentUser.username,
+        messages: [],
+      };
+
       currentUser.friends.push(newFriend);
+      friend.friends.push(currentUserAsFriend);
 
       friend.sentFriendRequests = friend.sentFriendRequests.filter(
         (username) => username !== currentUsername,
       );
 
-      await this.userRepository.save([currentUser, friend]);
+      try {
+        await this.userRepository.save(currentUser);
+        await this.userRepository.save(friend);
+      } catch (error) {
+        console.error('Error adding friend:', error);
+        throw new Error('Failed to save friend changes');
+      }
     }
   }
 
+  async rejectFriendRequest(
+    currentUsername: string,
+    friendUsername: string,
+  ): Promise<void> {
+    const currentUser = await this.userRepository.findOne({
+      where: { username: currentUsername },
+    });
+
+    if (!currentUser) {
+      throw new Error(`User with username ${currentUsername} not found`);
+    }
+
+    const friend = await this.userRepository.findOne({
+      where: { username: friendUsername },
+    });
+
+    if (!friend) {
+      throw new Error(`Friend with username ${friendUsername} not found`);
+    }
+
+    if (
+      currentUser.receivedFriendRequests.some(
+        (f) => f.username === friendUsername,
+      )
+    ) {
+      currentUser.receivedFriendRequests =
+        currentUser.receivedFriendRequests.filter(
+          (f) => f.username !== friendUsername,
+        );
+
+      friend.sentFriendRequests = friend.sentFriendRequests.filter(
+        (username) => username !== currentUsername,
+      );
+
+      try {
+        await this.userRepository.save(currentUser);
+        await this.userRepository.save(friend);
+      } catch (error) {
+        console.error('Error rejecting friend request:', error);
+        throw new Error('Failed to save friend request rejection');
+      }
+    }
+  }
   async getAllFriends(currentUser): Promise<Friend[]> {
     const user = await this.userRepository.findOne({
       where: { username: currentUser },

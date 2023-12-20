@@ -38,6 +38,16 @@ export class UserController {
     return this.userService.addFriend(body.currentUser, body.friendUsername);
   }
 
+  @Post('reject-friend-request')
+  async rejectFriendRequest(
+    @Body() body: { currentUser: string; friendUsername: string },
+  ) {
+    return this.userService.rejectFriendRequest(
+      body.currentUser,
+      body.friendUsername,
+    );
+  }
+
   @Get()
   findAll() {
     return this.userService.findAll();
