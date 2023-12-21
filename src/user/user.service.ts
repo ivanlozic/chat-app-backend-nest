@@ -5,6 +5,7 @@ import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { Friend } from './entities/friend.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { Message } from './entities/message.entity';
 // import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
@@ -43,7 +44,7 @@ export class UserService {
   async sendFriendRequest(
     currentUsername: string,
     friendUsername: string,
-  ): Promise<void> {
+  ): Promise<User> {
     const currentUser = await this.userRepository.findOne({
       where: { username: currentUsername },
     });
@@ -71,13 +72,14 @@ export class UserService {
       friend.receivedFriendRequests.push(userRequest);
 
       await this.userRepository.save([currentUser, friend]);
+      return currentUser;
     }
   }
 
   async addFriend(
     currentUsername: string,
     friendUsername: string,
-  ): Promise<void> {
+  ): Promise<User> {
     const currentUser = await this.userRepository.findOne({
       where: { username: currentUsername },
     });
@@ -126,6 +128,7 @@ export class UserService {
       try {
         await this.userRepository.save(currentUser);
         await this.userRepository.save(friend);
+        return currentUser;
       } catch (error) {
         console.error('Error adding friend:', error);
         throw new Error('Failed to save friend changes');
@@ -197,5 +200,47 @@ export class UserService {
 
     const updatedUser = await this.userRepository.save(user);
     return updatedUser;
+  }
+
+  async sendMessage(
+    currentUserUsername: string,
+    friendUsername: string,
+    message: Message,
+  ): Promise<User> {
+    const currentUser = await this.userRepository.findOne({
+      where: { username: currentUserUsername },
+    });
+
+    if (!currentUser) {
+      throw new Error(`User with username ${currentUserUsername} not found`);
+    }
+
+    const friend = currentUser.friends.find(
+      (f) => f.username === friendUsername,
+    );
+
+    if (!friend) {
+      throw new Error(`Friend with username ${friendUsername} not found`);
+    }
+
+    const friendBase = await this.userRepository.findOne({
+      where: { username: friendUsername },
+    });
+
+    if (!friendBase) {
+      throw new Error(`Friend with username ${friendUsername} not found`);
+    }
+
+    const currentUserAsFriend = friendBase.friends.find(
+      (f) => f.username === currentUserUsername,
+    );
+
+    friend.messages.push(message);
+    currentUserAsFriend.messages.push(message);
+
+    await this.userRepository.save(currentUser);
+    await this.userRepository.save(friendBase);
+
+    return currentUser;
   }
 }

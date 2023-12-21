@@ -10,6 +10,7 @@ import {
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { Message } from './entities/message.entity';
 //import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('user')
@@ -74,5 +75,17 @@ export class UserController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.userService.remove(+id);
+  }
+  @Post('send-message')
+  async sendMessage(
+    @Body()
+    body: {
+      currentUser: string;
+      friendUsername: string;
+      message: Message;
+    },
+  ) {
+    const { currentUser, friendUsername, message } = body;
+    return this.userService.sendMessage(currentUser, friendUsername, message);
   }
 }
