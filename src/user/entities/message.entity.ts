@@ -9,5 +9,8 @@ export class Message {
   content: string;
 
   @Column()
+  sender: string;
+
+  @Column()
   timestamp: Date;
 }
