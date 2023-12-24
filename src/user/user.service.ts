@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import { Friend } from './entities/friend.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Message } from './entities/message.entity';
+import * as bcrypt from 'bcrypt';
 // import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
@@ -17,12 +18,18 @@ export class UserService {
   ) {}
 
   async create(createUserDto: CreateUserDto) {
+    const { password, ...rest } = createUserDto;
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     const user = this.userRepository.create({
-      ...createUserDto,
+      ...rest,
+      password: hashedPassword,
       receivedFriendRequests: [],
       sentFriendRequests: [],
       friends: [],
     });
+
     const savedUser = await this.userRepository.save(user);
     return savedUser;
   }

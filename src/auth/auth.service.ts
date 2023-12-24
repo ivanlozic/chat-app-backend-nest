@@ -1,9 +1,9 @@
-// auth.service.ts
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { User } from 'src/user/entities/user.entity';
+import * as bcrypt from 'bcrypt'; // Dodato za bcrypt heširanje
 
 @Injectable()
 export class AuthService {
@@ -19,7 +19,7 @@ export class AuthService {
   ): Promise<{ token: string; user: User }> {
     const user = await this.userRepository.findOne({ where: { username } });
 
-    if (user && user.password === password) {
+    if (user && (await this.comparePasswords(password, user.password))) {
       const token = this.generateAuthToken();
       return { token, user };
     } else {
@@ -28,7 +28,13 @@ export class AuthService {
   }
 
   private generateAuthToken(): string {
-    // Implement your JWT token generation logic here
     return this.jwtService.sign({ sub: 'user_id' });
+  }
+
+  private async comparePasswords(
+    enteredPassword: string,
+    storedPasswordHash: string,
+  ): Promise<boolean> {
+    return bcrypt.compare(enteredPassword, storedPasswordHash);
   }
 }
