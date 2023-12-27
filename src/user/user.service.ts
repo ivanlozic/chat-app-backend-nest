@@ -201,6 +201,8 @@ export class UserService {
       throw new Error(`User with id ${id} not found`);
     }
 
+    user.username = updateUserDto.username;
+    user.email = updateUserDto.email;
     user.firstName = updateUserDto.firstName;
     user.lastName = updateUserDto.lastName;
     user.mobileNumber = updateUserDto.mobileNumber;
