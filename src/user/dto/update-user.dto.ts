@@ -7,6 +7,5 @@ export class UpdateUserDto implements Omit<CreateUserDto, 'friends'> {
   firstName: string;
   lastName: string;
   password: string;
-  repeatPassword: string;
   mobileNumber: string;
 }

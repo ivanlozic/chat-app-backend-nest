@@ -22,9 +22,6 @@ export class User {
   password: string;
 
   @Column()
-  repeatPassword: string;
-
-  @Column()
   mobileNumber: string;
   @Column({ type: 'json', default: '[]' })
   receivedFriendRequests: any[];
