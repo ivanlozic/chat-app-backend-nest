@@ -73,8 +73,8 @@ export class UserController {
     return this.userService.updateProfile(userId, updateUserDto);
   }
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.userService.remove(+id);
+  deleteProfile(@Param('id') userId: number) {
+    return this.userService.deleteUser(userId);
   }
   @Post('send-message')
   async sendMessage(
